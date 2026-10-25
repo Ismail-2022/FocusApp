@@ -15,18 +15,23 @@ final class WatchConnector: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     func start(minutes: Int) {
-        send(["command": "start", "minutes": minutes])
+        send(command: .start, minutes: minutes)
     }
 
-    func extend(minutes: Int = 10) {
-        send(["command": "extend", "minutes": minutes])
+    func extend(minutes: Int = FocusSessionConstants.extendMinutes) {
+        send(command: .extend, minutes: minutes)
     }
 
     func end() {
-        send(["command": "end", "minutes": 0])
+        send(command: .end, minutes: 0)
     }
 
-    private func send(_ payload: [String: Any]) {
+    private func send(command: FocusMessage.Command, minutes: Int) {
+        let payload: [String: Any] = [
+            FocusMessage.command: command.rawValue,
+            FocusMessage.minutes: minutes
+        ]
+
         // sendMessage is expected to wake the iOS counterpart app in the
         // background if it is not running. THAT IS THE SPIKE'S CLAIM — verify it,
         // and time it. If latency is bad or it fails when the phone is locked,
@@ -34,10 +39,10 @@ final class WatchConnector: NSObject, ObservableObject, WCSessionDelegate {
         statusText = "Sending…"
         WCSession.default.sendMessage(payload, replyHandler: { [weak self] reply in
             DispatchQueue.main.async {
-                let ok = reply["ok"] as? Bool ?? false
-                let reason = (reply["reason"] as? String) ?? (reply["error"] as? String) ?? ""
+                let ok = reply[FocusMessage.ok] as? Bool ?? false
+                let reason = reply[FocusMessage.reason] as? String ?? ""
                 self?.statusText = ok ? "OK" : "Failed: \(reason)"
-                if let ts = reply["endsAt"] as? TimeInterval, ts > 0 {
+                if let ts = reply[FocusMessage.endsAt] as? TimeInterval, ts > 0 {
                     self?.sessionEnd = Date(timeIntervalSince1970: ts)
                 }
             }

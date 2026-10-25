@@ -9,11 +9,11 @@ struct WatchSpikeView: View {
             if let end = connector.sessionEnd, end > Date() {
                 Text(end, style: .timer)
                     .font(.title2.monospacedDigit())
-                Button("+10 min") { connector.extend() }
+                Button("+\(FocusSessionConstants.extendMinutes) min") { connector.extend() }
                 Button("End", role: .destructive) { connector.end() }
             } else {
-                Button("Start 25 min") { connector.start(minutes: 25) }
-                Button("Start 15 min") { connector.start(minutes: 15) }
+                Button("Start \(FocusSessionConstants.defaultSessionMinutes) min") { connector.start(minutes: FocusSessionConstants.defaultSessionMinutes) }
+                Button("Start \(FocusSessionConstants.minimumSessionMinutes) min") { connector.start(minutes: FocusSessionConstants.minimumSessionMinutes) }
             }
 
             Text(connector.statusText)
