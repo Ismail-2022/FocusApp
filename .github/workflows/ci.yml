@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (Demo, unsigned)
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: |
+          cp Local.xcconfig.example Local.xcconfig
+          xcodegen generate
+
+      - name: Build iOS app (Demo Mode, no signing)
+        run: |
+          xcodebuild \
+            -scheme "FocusApp (Demo)" \
+            -configuration Demo \
+            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Build watchOS app (unsigned)
+        run: |
+          xcodebuild \
+            -scheme FocusAppWatch \
+            -configuration Demo \
+            -destination "platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build

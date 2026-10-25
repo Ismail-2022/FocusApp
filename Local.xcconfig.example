@@ -1,0 +1,6 @@
+// Copy to Local.xcconfig (gitignored) and fill in your own values.
+// Only needed for REAL builds on a device. Demo builds ignore this entirely.
+//
+// Find your team ID at developer.apple.com → Membership.
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic

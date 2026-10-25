@@ -1,0 +1,135 @@
+name: FocusApp
+
+options:
+  bundleIdPrefix: com.ismail
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+
+configs:
+  Debug: debug
+  Release: release
+  # Demo builds with no entitlement and no signing — runs in the simulator
+  # for anyone who clones the repo.
+  Demo: debug
+
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+  Demo: Local.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+
+  FocusApp:
+    type: application
+    platform: iOS
+    sources:
+      - Shared
+      - SharedIOS
+      - FocusAppiOS
+    info:
+      path: FocusAppiOS/Info.plist
+      properties:
+        CFBundleDisplayName: FocusApp
+        UILaunchScreen: {}
+        NSFamilyControlsUsageDescription: FocusApp blocks the apps you choose for the length of a focus session.
+    entitlements:
+      path: FocusAppiOS/FocusApp.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp
+      configs:
+        Demo:
+          # No entitlement, no signing, DEMO_MODE compiled in.
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG DEMO_MODE
+          CODE_SIGN_ENTITLEMENTS: ""
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
+          CODE_SIGN_IDENTITY: ""
+    dependencies:
+      - target: FocusMonitor
+      - target: FocusAppWatch
+        embed: true
+        copy:
+          destination: productsDirectory
+          subpath: $(CONTENTS_FOLDER_PATH)/Watch
+
+  FocusMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Shared
+      - SharedIOS
+      - FocusMonitor
+    info:
+      path: FocusMonitor/Info.plist
+      properties:
+        CFBundleDisplayName: FocusMonitor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FocusMonitorExtension
+    entitlements:
+      path: FocusMonitor/FocusMonitor.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.monitor
+      configs:
+        Demo:
+          CODE_SIGN_ENTITLEMENTS: ""
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
+          CODE_SIGN_IDENTITY: ""
+
+  FocusAppWatch:
+    type: application
+    platform: watchOS
+    sources:
+      # NOTE: SharedIOS is deliberately excluded — DeviceActivity and
+      # ManagedSettings do not exist on watchOS.
+      - Shared
+      - FocusAppWatch
+    info:
+      path: FocusAppWatch/Info.plist
+      properties:
+        CFBundleDisplayName: FocusApp
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.ismail.focusapp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.watchkitapp
+      configs:
+        Demo:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG DEMO_MODE
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
+          CODE_SIGN_IDENTITY: ""
+
+schemes:
+  FocusApp (Demo):
+    build:
+      targets:
+        FocusApp: all
+    run:
+      config: Demo
+    archive:
+      config: Demo
+
+  FocusApp (Real):
+    build:
+      targets:
+        FocusApp: all
+    run:
+      config: Debug
+    archive:
+      config: Release
