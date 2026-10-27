@@ -120,6 +120,14 @@ final class FocusSession: ObservableObject {
     // MARK: - Lifecycle
 
     func prepare() async {
+        #if DEBUG
+        // Preview launches skip the permission prompt so it doesn't sit on top
+        // of whatever state is being captured.
+        if ProcessInfo.processInfo.arguments.contains(where: {
+            $0 == "-previewRunning" || $0 == "-previewMinutes"
+        }) { return }
+        #endif
+
         alertsEnabled = await alerts.requestAuthorization()
     }
 

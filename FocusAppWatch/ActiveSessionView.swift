@@ -16,6 +16,8 @@ struct ActiveSessionView: View {
                 Text(countdown)
                     .font(TypeScale.numerals(52))
                     .foregroundStyle(Palette.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .accessibilityLabel("\(Int(session.remaining / 60)) minutes remaining")
 
                 if let endsAt = session.endsAt {
@@ -49,7 +51,7 @@ struct ActiveSessionView: View {
 
     private var countdown: String {
         let total = Int(session.remaining.rounded(.up))
-        return String(format: "%d:%02d", total / 60, total % 60)
+        return String(format: "%02d:%02d", total / 60, total % 60)
     }
 }
 

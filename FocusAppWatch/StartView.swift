@@ -14,15 +14,16 @@ struct StartView: View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
 
-            Text("\(session.selectedMinutes)")
-                .font(TypeScale.numerals(62, weight: .light))
+            // Shown as the clock it's about to become, so the figure you set is
+            // the figure you then watch count down. A "minutes" label under a
+            // mm:ss readout would be restating what the colon already says.
+            Text(String(format: "%02d:00", session.selectedMinutes))
+                .font(TypeScale.numerals(54, weight: .light))
                 .foregroundStyle(Palette.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
                 .contentTransition(.numericText())
-
-            Text(session.selectedMinutes == 1 ? "minute" : "minutes")
-                .font(TypeScale.label)
-                .foregroundStyle(Palette.inkMuted)
-                .padding(.top, -2)
+                .accessibilityLabel("\(session.selectedMinutes) minute session")
 
             Spacer(minLength: 0)
 
