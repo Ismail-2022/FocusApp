@@ -53,11 +53,6 @@ targets:
           CODE_SIGN_IDENTITY: ""
     dependencies:
       - target: FocusMonitor
-      - target: FocusAppWatch
-        embed: true
-        copy:
-          destination: productsDirectory
-          subpath: $(CONTENTS_FOLDER_PATH)/Watch
 
   FocusMonitor:
     type: app-extension
@@ -96,7 +91,9 @@ targets:
       properties:
         CFBundleDisplayName: FocusApp
         WKApplication: true
-        WKCompanionAppBundleIdentifier: com.ismail.focusapp
+        # Path C has no iPhone app. WKWatchOnly makes this a standalone watch
+        # app, so deploying it no longer drags the (dead) iOS target along.
+        WKWatchOnly: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.watchkitapp

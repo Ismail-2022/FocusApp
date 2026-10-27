@@ -22,7 +22,7 @@
 	<string>1</string>
 	<key>WKApplication</key>
 	<true/>
-	<key>WKCompanionAppBundleIdentifier</key>
-	<string>com.ismail.focusapp</string>
+	<key>WKWatchOnly</key>
+	<true/>
 </dict>
 </plist>
