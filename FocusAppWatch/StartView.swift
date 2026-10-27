@@ -19,7 +19,7 @@ struct StartView: View {
                 .foregroundStyle(Palette.ink)
                 .contentTransition(.numericText())
 
-            Text("minutes")
+            Text(session.selectedMinutes == 1 ? "minute" : "minutes")
                 .font(TypeScale.label)
                 .foregroundStyle(Palette.inkMuted)
                 .padding(.top, -2)
@@ -47,7 +47,7 @@ struct StartView: View {
             from: 0,
             through: Double(durations.count - 1),
             by: 1,
-            sensitivity: .low,
+            sensitivity: .medium,
             isContinuous: false,
             isHapticFeedbackEnabled: true
         )

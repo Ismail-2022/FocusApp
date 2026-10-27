@@ -19,7 +19,7 @@ The field rising behind the countdown is the primary readout — the numerals ar
 
 It rises rather than drains because a timer that empties frames focus as something being spent. This one fills as you succeed, and finishing is an arrival rather than a depletion.
 
-Duration is set with the **Digital Crown**, with haptic detents at each stop — the one input unique to this device, and the one most watch apps leave unused.
+Duration is set with the **Digital Crown**, with haptic detents at each stop — the one input unique to this device, and the one most watch apps leave unused. The ladder is fine-grained where it matters and coarse where it doesn't: single minutes up to 10, then five-minute steps to two hours.
 
 ---
 
@@ -103,7 +103,7 @@ The hardware gap is a tooling problem, not a design one: the test devices run wa
 
 - **Does not silence your phone.** See above.
 - Watch-only. No iPhone app, no complications, no session history.
-- Durations are fixed at 15 / 25 / 45 / 60 minutes.
+- Durations run 1–120 minutes: single minutes up to 10, then five-minute steps.
 
 ## Licence
 

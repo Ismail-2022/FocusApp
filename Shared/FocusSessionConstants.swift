@@ -2,7 +2,11 @@ import Foundation
 
 enum FocusSessionConstants {
     /// Offered session lengths, in minutes.
-    static let durations = [15, 25, 45, 60]
+    ///
+    /// Fine-grained at the bottom and coarse above it: the difference between
+    /// 3 and 4 minutes matters when you're easing in, the difference between
+    /// 61 and 62 doesn't. One-minute steps to 10, then fives.
+    static let durations: [Int] = Array(1...10) + Array(stride(from: 15, through: 120, by: 5))
 
     static let defaultMinutes = 25
 

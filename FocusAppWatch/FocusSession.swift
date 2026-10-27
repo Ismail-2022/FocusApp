@@ -48,11 +48,20 @@ final class FocusSession: ObservableObject {
     /// and screen recordings don't depend on tapping through the flow by hand:
     ///
     ///     xcrun simctl launch <device> <bundle-id> -previewRunning 0.6
+    ///     xcrun simctl launch <device> <bundle-id> -previewMinutes 120
     ///
-    /// The argument is the elapsed fraction to pose at. Debug builds only.
+    /// The arguments are the elapsed fraction to pose at, and the session
+    /// length to pose with. Debug builds only.
     private func applyDebugLaunchStateIfNeeded() {
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
+
+        if let minutesFlag = arguments.firstIndex(of: "-previewMinutes"),
+           arguments.indices.contains(minutesFlag + 1),
+           let minutes = Int(arguments[minutesFlag + 1]) {
+            selectedMinutes = minutes
+        }
+
         guard let flag = arguments.firstIndex(of: "-previewRunning") else { return }
 
         let fraction = arguments.indices.contains(flag + 1)
