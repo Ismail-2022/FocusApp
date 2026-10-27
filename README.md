@@ -2,94 +2,93 @@
 
 ![CI](https://github.com/Ismail-2022/FocusApp/actions/workflows/ci.yml/badge.svg)
 
-An open-source Apple Watch focus timer that **blocks the distracting apps on your iPhone** for the length of a session. One tap on the wrist, extendable mid-session, and the block lifts automatically when time's up.
+A standalone Apple Watch focus timer. Pick a duration, one tap to start, countdown on your wrist, haptics at the start, five minutes before the end, and at the end. Extendable mid-session.
 
-> **Status: pre-alpha feasibility spike.** The architecture and safety model are in place; on-device verification is in progress. See [Project status](#project-status).
+No iPhone app. No account. No server. No analytics.
 
 ---
 
-## Why not just use Do Not Disturb?
+## This app was supposed to do more
 
-Because **no third-party app can turn on Do Not Disturb or any Focus mode.** Apple exposes no API for it, on iOS or watchOS. Every "focus" app that claims otherwise is either asking you to wire up a Shortcuts automation yourself, or not doing what it says.
+The original idea was: **one tap on the watch silences your phone for the length of a focus session.** That app does not exist here, because after building toward it twice, I established that it can't be done the way I intended. The investigation is the most useful thing in this repository, so it's documented here rather than quietly dropped.
 
-FocusApp uses the **Screen Time APIs** instead — `FamilyControls`, `ManagedSettings` and `DeviceActivity` — to shield the apps you pick for the duration of a session.
+### Attempt 1 — Screen Time APIs
 
-This is arguably the better behaviour anyway. Do Not Disturb silences notifications; it does nothing to stop you opening Instagram out of habit. A shield does.
+The plan was to shield distracting apps for the session duration using `FamilyControls`, `ManagedSettings` and `DeviceActivity`.
 
-## Architecture
+Worth saying why this approach was chosen over the obvious one: **no third-party app can turn on Do Not Disturb.** Apple exposes no API for it, on iOS or watchOS. App shielding is also the better behaviour — Do Not Disturb silences notifications, but it doesn't stop you *opening* Instagram out of habit. A shield does.
 
-```
-Apple Watch  ──WatchConnectivity──▶  iPhone app  ──▶  ManagedSettings (the shield)
-  (remote)                           (all logic)
-                                          │
-                                          └──▶  DeviceActivity schedule
-                                                      │
-                                                      ▼
-                                          FocusMonitor extension
-                                          (clears the shield on expiry)
-```
+The architecture worked out nicely on paper. `DeviceActivity` lets you register a schedule with the system, and a `DeviceActivityMonitor` extension runs in its own process to tear the shield down when the interval ends — so the session would end correctly even if the app were force-quit, the phone rebooted, or the battery died.
 
-Three decisions worth calling out:
+It never ran. Attempting to sign the target produces:
 
-**The watch is a remote control, not the brain.** watchOS has no `FamilyControls` framework, so every Screen Time call has to happen on the phone. The watch sends `start` / `extend` / `end` and renders a countdown.
+> Cannot create a iOS App Development provisioning profile for "com.ismail.focusapp".
+> Personal development teams, including "Muhammad Ismail", do not support the Family Controls (Development) capability.
 
-**The OS owns the expiry, not the app.** The shield is lifted by a `DeviceActivityMonitor` extension running in its own process. So the session ends correctly even if the app is force-quit, the phone reboots, or the battery dies. An in-app `Timer` could not make that guarantee.
+`FamilyControls` is gated behind the paid Apple Developer Program — **not only for App Store distribution, but for local development on your own device.** There is no free path. I had assumed development would be unrestricted and distribution gated; that assumption was wrong, and I'd written a fair amount of code before testing it.
 
-**The shield fails closed.** `ManagedSettings` changes persist across termination *and* reboot — a shield left behind with no expiry owner would block a user's apps until they deleted FocusApp. So if scheduling an expiry ever fails, the shield is torn down immediately rather than left up. See `SessionController`.
+### Attempt 2 — Shortcuts automation
+
+Since an app can't toggle Do Not Disturb directly, the fallback was to have the app trigger a user-created Shortcut that does: *Set Focus → DND On → Wait [duration] → Set Focus → DND Off.*
+
+This works, with one qualification that kills it.
+
+The `Wait` step only survives while the Shortcuts app stays resident in memory. Remove Shortcuts from the app switcher and the timer dies **with Do Not Disturb still on** — silently, indefinitely, with no notification and no recovery. The user's phone is just quiet until they work out why.
+
+And that state is reachable without anyone deliberately force-quitting anything. iOS evicts background apps under memory pressure on its own; a demanding game, video capture, or ordinary memory churn will do it. A reboot or a flat battery does it too.
+
+So Attempt 2 fails in exactly the way Attempt 1's architecture was designed to prevent.
+
+### What both failures have in common
+
+**A timer owned by a process that can be killed is not a timer.**
+
+Attempt 1 handed expiry to the operating system and would have been robust. Attempt 2 kept expiry inside a running app and was not. That distinction is the single thing worth taking from this project, and it's the reason the shipped version is built the way it is.
+
+### What shipped instead
+
+A watch timer that doesn't silence anything. It keeps the promise it can actually keep.
+
+The cost of being wrong here is much lower — a missed haptic is an annoyance, not a phone stuck on mute — but the same principle applies anyway. The countdown you see on screen is driven by an in-app `Timer`, and that timer is **not trusted to tell you the session ended.** The alert that matters is registered with the system via `UNUserNotificationCenter` the moment a session starts, so it fires whether or not this app is still alive. See [`SessionNotifications.swift`](FocusAppWatch/SessionNotifications.swift).
+
+Session end time is also persisted, so a session terminated mid-run is restored on next launch rather than silently lost.
 
 ## Running it
 
-### Demo Mode — no Apple Developer account needed
-
-Demo Mode swaps the real shield for a logging stub, so the full app runs in the simulator with no entitlement, no paid membership and no Apple Watch. Same UI, same state machine, same code paths — only the Screen Time calls are faked.
-
 ```bash
-make setup   # installs XcodeGen, generates the Xcode project
-make demo    # builds and launches in the simulator
+make setup   # installs XcodeGen, generates the project
+make run     # builds and launches in the watch simulator
 ```
 
-That's it. No `.xcodeproj` in the repo (it's generated from `project.yml`), so there's nothing to merge-conflict or path-break.
+No developer account needed — the app uses no entitlements.
 
-### Real Mode — the actual thing
+### A build gotcha worth knowing
 
-```bash
-cp Local.xcconfig.example Local.xcconfig   # add your DEVELOPMENT_TEAM
-make build
-```
+This repo lives under `~/Documents`, which is iCloud-synced. iCloud's file provider stamps `com.apple.FinderInfo` onto files it touches, and `codesign` rejects any bundle carrying it:
 
-## Prerequisites
+> resource fork, Finder information, or similar detritus not allowed
 
-| | Demo Mode | Real Mode |
-|---|---|---|
-| Xcode | ✅ required | ✅ required |
-| Apple Developer Program (£79/yr) | — | ✅ required |
-| `com.apple.developer.family-controls` entitlement | — | ✅ required (Apple-gated for distribution) |
-| Physical iPhone | — | ✅ required (simulator can't shield) |
-| Apple Watch | — | ✅ for the watch half |
-| Apps actually get blocked | ❌ logged only | ✅ |
+Clearing the attributes doesn't help, because they're reapplied as the build writes files. The fix is to keep the derived data directory outside any synced folder, which the `Makefile` does by default.
 
-**Why no downloadable build?** iOS binaries must be code-signed against a specific team and device list, so there's no executable anyone can just run. Worse, the Family Controls entitlement is **per-team** — even a perfectly signed build wouldn't shield anything under someone else's account. Demo Mode exists precisely because of this.
+## Verification status
+
+Honest accounting of what has and hasn't been tested:
+
+| | Status |
+|---|---|
+| Builds clean (CI, every push) | ✅ |
+| Runs in watchOS Simulator | ✅ |
+| Timer, extend, cancel, restore-after-termination | ✅ simulator |
+| **Runs on a physical Apple Watch** | ❌ **not yet verified** |
+| **Haptic fires with the app backgrounded on real hardware** | ❌ **not yet verified** |
+
+The hardware gap is a tooling problem, not a design one: the test devices run watchOS 27 while the available Xcode supports up to watchOS 26.5, so Xcode cannot deploy to them. Scheduled local notifications firing after app termination is well-established platform behaviour, but *well-established* is not *verified*, and this project has already been wrong about platform assumptions twice. It is listed as unverified until it's confirmed on a wrist.
 
 ## Limitations
 
-Honest list, because these are Apple's constraints and not bugs:
-
-- **No Do Not Disturb.** Not possible for third-party apps. App shielding is used instead.
-- **A session is 15 minutes minimum** in Real Mode — `DeviceActivitySchedule` rejects shorter intervals. Demo Mode allows shorter sessions so the flow is quick to watch; don't mistake that for the real limit.
-- **Selected apps are unreadable to the app.** `ApplicationToken` is opaque by design: no bundle IDs, no names. FocusApp can count your selection and block it, never list or sync it.
-- **App picking happens on the phone.** `FamilyActivityPicker` is iOS-only, so the watch can't change which apps are blocked.
-- **The monitor extension runs under a ~6 MB memory cap**, so it does exactly one thing: clear the shield.
-
-<!-- TODO: add findings from the on-device spike — extend-under-15-min behaviour, watch wake latency -->
-
-## Project status
-
-- [x] Architecture + safety model
-- [x] Demo Mode, reproducible builds, CI
-- [ ] On-device verification of the shield and the force-quit failsafe
-- [ ] `+10 min` extend under the 15-minute floor — behaviour unknown
-- [ ] Watch → phone background wake: reliability and latency
-- [ ] Real UI (current UI is a deliberately ugly spike harness)
+- **Does not silence your phone.** See above.
+- Watch-only. No iPhone app, no complications, no session history.
+- Durations are fixed at 15 / 25 / 45 / 60 minutes.
 
 ## Licence
 

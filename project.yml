@@ -3,21 +3,16 @@ name: FocusApp
 options:
   bundleIdPrefix: com.ismail
   deploymentTarget:
-    iOS: "17.0"
     watchOS: "10.0"
   createIntermediateGroups: true
 
 configs:
   Debug: debug
   Release: release
-  # Demo builds with no entitlement and no signing — runs in the simulator
-  # for anyone who clones the repo.
-  Demo: debug
 
 configFiles:
   Debug: Local.xcconfig
   Release: Local.xcconfig
-  Demo: Local.xcconfig
 
 settings:
   base:
@@ -27,63 +22,10 @@ settings:
 
 targets:
 
-  FocusApp:
-    type: application
-    platform: iOS
-    sources:
-      - Shared
-      - SharedIOS
-      - FocusAppiOS
-    info:
-      path: FocusAppiOS/Info.plist
-      properties:
-        CFBundleDisplayName: FocusApp
-        UILaunchScreen: {}
-        NSFamilyControlsUsageDescription: FocusApp blocks the apps you choose for the length of a focus session.
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp
-      configs:
-        Demo:
-          # No entitlement, no signing, DEMO_MODE compiled in.
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG DEMO_MODE
-          CODE_SIGN_ENTITLEMENTS: ""
-          CODE_SIGNING_ALLOWED: "NO"
-          CODE_SIGNING_REQUIRED: "NO"
-          CODE_SIGN_IDENTITY: ""
-    dependencies:
-      - target: FocusMonitor
-
-  FocusMonitor:
-    type: app-extension
-    platform: iOS
-    sources:
-      - Shared
-      - SharedIOS
-      - FocusMonitor
-    info:
-      path: FocusMonitor/Info.plist
-      properties:
-        CFBundleDisplayName: FocusMonitor
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FocusMonitorExtension
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.monitor
-      configs:
-        Demo:
-          CODE_SIGN_ENTITLEMENTS: ""
-          CODE_SIGNING_ALLOWED: "NO"
-          CODE_SIGNING_REQUIRED: "NO"
-          CODE_SIGN_IDENTITY: ""
-
   FocusAppWatch:
     type: application
     platform: watchOS
     sources:
-      # NOTE: SharedIOS is deliberately excluded — DeviceActivity and
-      # ManagedSettings do not exist on watchOS.
       - Shared
       - FocusAppWatch
     info:
@@ -91,34 +33,8 @@ targets:
       properties:
         CFBundleDisplayName: FocusApp
         WKApplication: true
-        # Path C has no iPhone app. WKWatchOnly makes this a standalone watch
-        # app, so deploying it no longer drags the (dead) iOS target along.
+        # Standalone watch app — there is no iPhone companion.
         WKWatchOnly: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.watchkitapp
-      configs:
-        Demo:
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG DEMO_MODE
-          CODE_SIGNING_ALLOWED: "NO"
-          CODE_SIGNING_REQUIRED: "NO"
-          CODE_SIGN_IDENTITY: ""
-
-schemes:
-  FocusApp (Demo):
-    build:
-      targets:
-        FocusApp: all
-    run:
-      config: Demo
-    archive:
-      config: Demo
-
-  FocusApp (Real):
-    build:
-      targets:
-        FocusApp: all
-    run:
-      config: Debug
-    archive:
-      config: Release
