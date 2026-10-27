@@ -1,6 +1,6 @@
 # FocusApp
 
-![CI](https://github.com/USERNAME/FocusApp/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/Ismail-2022/FocusApp/actions/workflows/ci.yml/badge.svg)
 
 An open-source Apple Watch focus timer that **blocks the distracting apps on your iPhone** for the length of a session. One tap on the wrist, extendable mid-session, and the block lifts automatically when time's up.
 
