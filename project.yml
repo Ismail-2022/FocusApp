@@ -40,10 +40,6 @@ targets:
         CFBundleDisplayName: FocusApp
         UILaunchScreen: {}
         NSFamilyControlsUsageDescription: FocusApp blocks the apps you choose for the length of a focus session.
-    entitlements:
-      path: FocusAppiOS/FocusApp.entitlements
-      properties:
-        com.apple.developer.family-controls: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp
@@ -77,10 +73,6 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FocusMonitorExtension
-    entitlements:
-      path: FocusMonitor/FocusMonitor.entitlements
-      properties:
-        com.apple.developer.family-controls: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ismail.focusapp.monitor
