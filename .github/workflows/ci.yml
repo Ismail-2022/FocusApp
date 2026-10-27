@@ -27,7 +27,7 @@ jobs:
           xcodebuild \
             -scheme "FocusApp (Demo)" \
             -configuration Demo \
-            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -destination "platform=iOS Simulator,name=iPhone 17" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build

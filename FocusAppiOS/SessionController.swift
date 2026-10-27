@@ -20,8 +20,12 @@ final class SessionController: ObservableObject {
         return sessionEnd > Date()
     }
 
-    init(backend: ShieldBackend = ShieldBackendFactory.make()) {
-        self.backend = backend
+    init(backend: ShieldBackend? = nil) {
+        // NOTE: can't default `backend` directly to `ShieldBackendFactory.make()` —
+        // default-parameter expressions evaluate in a nonisolated context even
+        // when the initializer itself is @MainActor, so the compiler rejects
+        // calling a @MainActor factory there. Resolving it in the body instead.
+        self.backend = backend ?? ShieldBackendFactory.make()
         self.backend.onExpiry = { [weak self] in
             self?.backend.clear()
             self?.sessionEnd = nil

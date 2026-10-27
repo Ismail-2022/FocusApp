@@ -4,7 +4,7 @@
 #   make setup
 #   make demo
 
-SIM ?= iPhone 16
+SIM ?= iPhone 17
 SCHEME_DEMO = FocusApp (Demo)
 SCHEME_REAL = FocusApp (Real)
 BUNDLE_ID = com.ismail.focusapp
