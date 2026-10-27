@@ -20,7 +20,11 @@ import UserNotifications
 /// that actually matters is registered with the system up front, so it fires
 /// whether or not this app is still alive when the time comes.
 protocol SessionAlerting {
-    func requestAuthorization() async
+    /// Returns whether alerts are permitted. A denied session still runs — it
+    /// just can't tell the user it finished once the app is backgrounded, which
+    /// the UI says plainly rather than failing silently.
+    @discardableResult
+    func requestAuthorization() async -> Bool
     func scheduleAlerts(endingAt end: Date) async
     func cancelAlerts()
 }
@@ -34,8 +38,9 @@ final class SessionNotifications: SessionAlerting {
         static let warning = "focus.session.warning"
     }
 
-    func requestAuthorization() async {
-        _ = try? await center.requestAuthorization(options: [.alert, .sound])
+    @discardableResult
+    func requestAuthorization() async -> Bool {
+        (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
     }
 
     func scheduleAlerts(endingAt end: Date) async {

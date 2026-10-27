@@ -6,6 +6,21 @@ A standalone Apple Watch focus timer. Pick a duration, one tap to start, countdo
 
 No iPhone app. No account. No server. No analytics.
 
+<p align="center">
+  <img src="docs/01-start.png" width="150" alt="Start screen: 25 minutes, Begin">
+  <img src="docs/02-early.png" width="150" alt="Early in a session, horizon low and petrol blue">
+  <img src="docs/03-dawn.png" width="150" alt="Near the end, the field risen and turned rose">
+  <img src="docs/04-done.png" width="150" alt="Completion: Done, 25 minutes focused">
+</p>
+
+## The session is a night that ends in dawn
+
+The field rising behind the countdown is the primary readout — the numerals are the precision layer on top of it. It climbs as the session elapses and travels from deep petrol through violet to rose, so *nearly finished* is legible across a room without reading a digit. There is deliberately no separate alarm colour for the last few minutes: by then the dawn has already arrived.
+
+It rises rather than drains because a timer that empties frames focus as something being spent. This one fills as you succeed, and finishing is an arrival rather than a depletion.
+
+Duration is set with the **Digital Crown**, with haptic detents at each stop — the one input unique to this device, and the one most watch apps leave unused.
+
 ---
 
 ## This app was supposed to do more

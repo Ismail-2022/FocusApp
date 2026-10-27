@@ -13,5 +13,6 @@ enum FocusSessionConstants {
     static let warningMinutes = 5
 
     /// Persisted so a session survives the app being terminated mid-run.
+    static let persistedStartKey = "focus.session.startedAt"
     static let persistedEndKey = "focus.session.endsAt"
 }

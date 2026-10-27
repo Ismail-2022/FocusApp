@@ -1,37 +1,66 @@
 import SwiftUI
 
+/// Night, before the session. The Crown picks the length — it's the one input
+/// unique to this device, and a system picker wastes it.
 struct StartView: View {
     @EnvironmentObject private var session: FocusSession
 
+    @State private var crown: Double = 0
+    @FocusState private var crownFocused: Bool
+
+    private var durations: [Int] { FocusSessionConstants.durations }
+
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
             Text("\(session.selectedMinutes)")
-                .font(.system(size: 44, weight: .semibold, design: .rounded))
-                .monospacedDigit()
+                .font(TypeScale.numerals(62, weight: .light))
+                .foregroundStyle(Palette.ink)
                 .contentTransition(.numericText())
 
             Text("minutes")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(TypeScale.label)
+                .foregroundStyle(Palette.inkMuted)
+                .padding(.top, -2)
 
-            Picker("Duration", selection: $session.selectedMinutes) {
-                ForEach(FocusSessionConstants.durations, id: \.self) { minutes in
-                    Text("\(minutes)").tag(minutes)
-                }
-            }
-            .pickerStyle(.navigationLink)
-            .labelsHidden()
-            .frame(height: 34)
+            Spacer(minLength: 0)
 
-            Button {
-                withAnimation { session.start() }
-            } label: {
-                Text("Start")
-                    .frame(maxWidth: .infinity)
+            if !session.alertsEnabled {
+                Text("Alerts are off. Turn on notifications to be told when a session ends.")
+                    .font(TypeScale.note)
+                    .foregroundStyle(Palette.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 6)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
+
+            Button("Begin") {
+                session.start()
+            }
+            .buttonStyle(ChipButtonStyle(fill: Palette.field(at: 0.12)))
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 6)
+        .focusable(true)
+        .focused($crownFocused)
+        .digitalCrownRotation(
+            $crown,
+            from: 0,
+            through: Double(durations.count - 1),
+            by: 1,
+            sensitivity: .low,
+            isContinuous: false,
+            isHapticFeedbackEnabled: true
+        )
+        .onChange(of: crown) { _, value in
+            let index = min(max(Int(value.rounded()), 0), durations.count - 1)
+            guard durations[index] != session.selectedMinutes else { return }
+            withAnimation(.snappy(duration: 0.2)) {
+                session.selectedMinutes = durations[index]
+            }
+        }
+        .onAppear {
+            crown = Double(durations.firstIndex(of: session.selectedMinutes) ?? 1)
+            crownFocused = true
+        }
     }
 }
