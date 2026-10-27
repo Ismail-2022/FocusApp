@@ -22,12 +22,16 @@ jobs:
           cp Local.xcconfig.example Local.xcconfig
           xcodegen generate
 
+      # Generic destinations deliberately avoid naming a concrete simulator —
+      # GitHub's runner image doesn't guarantee the same device catalog as a
+      # developer's machine, and this job only builds, it never launches.
+      # (Local `make demo` uses a named, booted simulator since it does launch.)
       - name: Build iOS app (Demo Mode, no signing)
         run: |
           xcodebuild \
             -scheme "FocusApp (Demo)" \
             -configuration Demo \
-            -destination "platform=iOS Simulator,name=iPhone 17" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
@@ -37,7 +41,7 @@ jobs:
           xcodebuild \
             -scheme FocusAppWatch \
             -configuration Demo \
-            -destination "platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)" \
+            -destination "generic/platform=watchOS Simulator" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
